@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Button, Text, Title, RadioButton } from 'react-native-paper';
 import { AuthContext } from '../contexts/authContext';
 
@@ -16,9 +16,18 @@ export const SignUpScreen = ({ navigation }: any) => {
       setError('Preencha todos os campos');
       return;
     }
+
+    if (!email.includes('@')) {
+      setError('Digite um email válido');
+      return;
+    }
+
     const success = await signUp(name, email, password, riskProfile);
     if (!success) {
-      setError('Falha no cadastro');
+      setError('Erro ao criar conta');
+    } else {
+      Alert.alert('Conta criada com sucesso!', 'Faça login para continuar.');
+      navigation.goBack();
     }
   };
 
@@ -49,12 +58,12 @@ export const SignUpScreen = ({ navigation }: any) => {
         secureTextEntry
         style={styles.input}
       />
-      <Text style={{ marginTop: 12 }}>Perfil de Risco</Text>
+      <Text style={{ marginTop: 12 }}>Perfil de Investidor</Text>
       <RadioButton.Group
         onValueChange={value => setRiskProfile(value as any)}
         value={riskProfile}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginVertical: 12 }}>
+        <View style={styles.radioContainer}>
           <RadioButton.Item label="Conservador" value="conservador" />
           <RadioButton.Item label="Moderado" value="moderado" />
           <RadioButton.Item label="Agressivo" value="agressivo" />
@@ -77,4 +86,7 @@ const styles = StyleSheet.create({
   button: { marginVertical: 8 },
   title: { textAlign: 'center', marginBottom: 24 },
   error: { color: 'red', textAlign: 'center', marginBottom: 12 },
+  radioContainer: {
+    marginVertical: 12,
+  },
 });

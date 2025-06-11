@@ -17,51 +17,80 @@ type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
+type StoredUser = User & { password: string };
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const USERS_KEY = '@MyApp:users';
+  const CURRENT_USER_KEY = '@MyApp:user';
+
   useEffect(() => {
-    // Ao iniciar app, tenta recuperar usuário salvo
     const loadUser = async () => {
-      const savedUser = await AsyncStorage.getItem('@MyApp:user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+      try {
+        const savedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
+        if (savedUser) setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
       }
       setLoading(false);
     };
     loadUser();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    // Simula autenticação, aqui vc pode integrar backend real
-    if (email && password) {
-      const fakeUser = {
-        name: 'Usuário de Exemplo',
-        email,
-        riskProfile: 'moderado' as User['riskProfile']
-      };
-      await AsyncStorage.setItem('@MyApp:user', JSON.stringify(fakeUser));
-      setUser(fakeUser);
-      return true;
+  const signIn = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const storedUsersJson = await AsyncStorage.getItem(USERS_KEY);
+      const storedUsers: StoredUser[] = storedUsersJson ? JSON.parse(storedUsersJson) : [];
+
+      const foundUser = storedUsers.find(u => u.email === email && u.password === password);
+      if (foundUser) {
+        const { password: _, ...userWithoutPassword } = foundUser;
+        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
+        setUser(userWithoutPassword);
+        return true;
+      }
+    } catch (error) {
+      console.error('Erro no login:', error);
     }
     return false;
   };
 
   const signOut = async () => {
-    await AsyncStorage.removeItem('@MyApp:user');
-    setUser(null);
+    try {
+      await AsyncStorage.removeItem(CURRENT_USER_KEY);
+      setUser(null);
+    } catch (error) {
+      console.error('Erro ao sair:', error);
+    }
   };
 
-  const signUp = async (name: string, email: string, password: string, riskProfile: User['riskProfile']) => {
-    // Simula cadastro
-    if (name && email && password) {
-      const newUser = { name, email, riskProfile };
-      await AsyncStorage.setItem('@MyApp:user', JSON.stringify(newUser));
-      setUser(newUser);
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string,
+    riskProfile: User['riskProfile']
+  ): Promise<boolean> => {
+    try {
+      const storedUsersJson = await AsyncStorage.getItem(USERS_KEY);
+      const storedUsers: StoredUser[] = storedUsersJson ? JSON.parse(storedUsersJson) : [];
+
+      const alreadyExists = storedUsers.some(u => u.email === email);
+      if (alreadyExists) return false;
+
+      const newUser: StoredUser = { name, email, password, riskProfile };
+      const updatedUsers = [...storedUsers, newUser];
+
+      await AsyncStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+      const { password: _, ...userWithoutPassword } = newUser;
+      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
+      setUser(userWithoutPassword);
       return true;
+    } catch (error) {
+      console.error('Erro no cadastro:', error);
+      return false;
     }
-    return false;
   };
 
   return (

@@ -1,38 +1,131 @@
 import React, { useContext } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
-import { Text, Button, Title } from 'react-native-paper';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { AuthContext } from '../contexts/authContext';
-import { AssetCard } from '../components/AssetCard';
-import { getRecommendations } from '../services/recommendation.service';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
 
-export const HomeScreen = () => {
+export default function HomeScreen() {
   const { user, signOut } = useContext(AuthContext);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  if (!user) return null;
-
-  // Pega recomendação baseado no perfil do usuário
-  const recommendations = getRecommendations(user);
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Deseja realmente sair da sua conta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: signOut },
+      ]
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <Title>Bem-vindo, {user.name}!</Title>
-      <Text>Perfil de risco: {user.riskProfile}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Olá, {user?.name}</Text>
+          <Text style={styles.profile}>Perfil: {user?.riskProfile}</Text>
+        </View>
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.logout}>Sair</Text>
+        </TouchableOpacity>
+      </View>
 
-      <FlatList
-        data={recommendations}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <AssetCard asset={item} />}
-        style={{ marginTop: 16, width: '100%' }}
-      />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🔎 Recomendações Rápidas</Text>
 
-      <Button mode="contained" onPress={signOut} style={styles.logoutButton}>
-        Sair
-      </Button>
-    </View>
+        <View style={styles.card}>
+          <Text style={styles.tipTitle}>📌 Renda fixa com liquidez diária</Text>
+          <Text style={styles.tipText}>Ideal para reserva de emergência com segurança.</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.tipTitle}>📌 Ações estáveis para médio prazo</Text>
+          <Text style={styles.tipText}>Empresas consolidadas com histórico de dividendos.</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.tipTitle}>📌 Fundos imobiliários com bom yield</Text>
+          <Text style={styles.tipText}>Receba aluguéis mensais com boa previsibilidade.</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Education')}>
+        <Text style={styles.buttonText}>🎓 Educação Interativa</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Recommendation')}>
+        <Text style={styles.buttonText}>💼 Carteira Recomendada</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Goals')}>
+        <Text style={styles.buttonText}>🎯 Meus Objetivos</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex:1, padding: 16, alignItems: 'center' },
-  logoutButton: { marginTop: 24, width: '100%' },
+  container: {
+    padding: 16,
+    backgroundColor: '#fff',
+    flexGrow: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#6A0DAD',
+  },
+  profile: {
+    fontSize: 16,
+    color: '#666',
+  },
+  logout: {
+    color: '#FF4D4D',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#6A0DAD',
+  },
+  card: {
+    backgroundColor: '#f3e8ff',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  tipTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    color: '#333',
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#555',
+  },
+  button: {
+    backgroundColor: '#6A0DAD',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
