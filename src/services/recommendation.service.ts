@@ -1,6 +1,6 @@
-import { Asset } from '../models/asset';
-import { UserProfile } from '../models/userProfile';
-import { assetsList } from '../data/assetsData'; 
+import { Asset } from '../domain/assets/asset';
+import { UserProfile } from '../domain/types/userProfile';
+import { assetsList } from '../domain/assets/assetsData'; 
 
 export const getRecommendations = (user: UserProfile): Asset[] => {
   switch (user.riskProfile) {

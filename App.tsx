@@ -1,6 +1,6 @@
 import React from 'react';
-import { AuthProvider } from './src/contexts/authContext';
-import { AppNavigator } from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/contexts/AuthContext';
+import { AppNavigator } from './src/navigation';
 
 export default function App() {
   return (

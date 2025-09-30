@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Button, Text, Title, RadioButton } from 'react-native-paper';
-import { AuthContext } from '../contexts/authContext';
+import { AuthContext } from '../../contexts/AuthContext';
 
 export const SignUpScreen = ({ navigation }: any) => {
   const { signUp } = useContext(AuthContext);

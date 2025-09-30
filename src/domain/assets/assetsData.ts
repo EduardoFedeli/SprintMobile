@@ -1,4 +1,4 @@
-import { Asset } from '../models/asset';
+import { Asset } from '../assets/asset';
 
 export const assetsList: Asset[] = [
   {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Card, Paragraph, Title } from 'react-native-paper';
-import { Asset } from '../models/asset';
+import { Asset } from '../../domain/assets/asset';
 
 export const AssetCard = ({ asset }: { asset: Asset }) => (
   <Card style={styles.card}>
