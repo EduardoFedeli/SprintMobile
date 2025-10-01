@@ -1,13 +1,24 @@
-import React, { useContext } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { AuthContext } from '../../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../domain/types/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function HomeScreen() {
-  const { user, signOut } = useContext(AuthContext);
+  const { user, logout } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  // Redireciona para login se não houver usuário logado
+  useEffect(() => {
+    if (!user) {
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
+  }, [user]);
+
+  if (!user) {
+    return null; // evita renderizar a tela antes do redirecionamento
+  }
 
   const handleLogout = () => {
     Alert.alert(
@@ -15,7 +26,7 @@ export default function HomeScreen() {
       'Deseja realmente sair da sua conta?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: signOut },
+        { text: 'Sair', style: 'destructive', onPress: logout },
       ]
     );
   };
@@ -24,8 +35,10 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Olá, {user?.name}</Text>
-          <Text style={styles.profile}>Perfil: {user?.riskProfile}</Text>
+          <Text style={styles.greeting}>Olá, {user.name}</Text>
+          <Text style={styles.profile}>
+            Perfil: {user.profile?.riskProfile || 'Não definido'}
+          </Text>
         </View>
         <TouchableOpacity onPress={handleLogout}>
           <Text style={styles.logout}>Sair</Text>

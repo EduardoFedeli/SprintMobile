@@ -1,92 +1,51 @@
-import React, { useState, useContext } from 'react';
-import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Text, Title, RadioButton } from 'react-native-paper';
-import { AuthContext } from '../../contexts/AuthContext';
+import React from "react";
+import { View, StyleSheet, Text } from "react-native";
+// IMPORTANTE: Todas as importações de StepName, StepEmail, etc. não são mais usadas aqui.
+// Elas estão sendo usadas diretamente no src/navigation/index.tsx
+
+// ESTE COMPONENTE NÃO TEM MAIS A LÓGICA DE MULTI-STEP.
+// Ele é apenas um placeholder, já que a navegação para os passos
+// (StepName, StepEmail, etc.) agora é feita pelo SignUpNavigator.
 
 export const SignUpScreen = ({ navigation }: any) => {
-  const { signUp } = useContext(AuthContext);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [riskProfile, setRiskProfile] = useState<'conservador' | 'moderado' | 'agressivo'>('conservador');
-  const [error, setError] = useState('');
+  // Você pode iniciar a navegação para o primeiro passo aqui
+  // Embora no seu AppNavigator, a tela "SignUp" já chame o SignUpNavigator que começa em "StepName".
+  React.useEffect(() => {
+    // Para garantir que o usuário vá para a primeira tela do fluxo
+    // Se a navegação direta no AppNavigator não funcionar, ative este trecho:
+    /*
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'StepName' }],
+    });
+    */
+  }, [navigation]);
 
-  const handleSignUp = async () => {
-    if (!name || !email || !password) {
-      setError('Preencha todos os campos');
-      return;
-    }
-
-    if (!email.includes('@')) {
-      setError('Digite um email válido');
-      return;
-    }
-
-    const success = await signUp(name, email, password, riskProfile);
-    if (!success) {
-      setError('Erro ao criar conta');
-    } else {
-      Alert.alert('Conta criada com sucesso!', 'Faça login para continuar.');
-      navigation.goBack();
-    }
-  };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-    >
-      <Title style={styles.title}>Criar Conta</Title>
-      <TextInput
-        label="Nome"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-      <TextInput
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-      />
-      <TextInput
-        label="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      />
-      <Text style={{ marginTop: 12 }}>Perfil de Investidor</Text>
-      <RadioButton.Group
-        onValueChange={value => setRiskProfile(value as any)}
-        value={riskProfile}
-      >
-        <View style={styles.radioContainer}>
-          <RadioButton.Item label="Conservador" value="conservador" />
-          <RadioButton.Item label="Moderado" value="moderado" />
-          <RadioButton.Item label="Agressivo" value="agressivo" />
-        </View>
-      </RadioButton.Group>
-      {!!error && <Text style={styles.error}>{error}</Text>}
-      <Button mode="contained" onPress={handleSignUp} style={styles.button}>
-        Cadastrar
-      </Button>
-      <Button onPress={() => navigation.goBack()}>
-        Voltar para Login
-      </Button>
-    </KeyboardAvoidingView>
+    <View style={styles.container}>
+      {/* Mensagem simples ou apenas um componente vazio */}
+      <Text style={styles.infoText}>Iniciando o fluxo de cadastro...</Text>
+      {/* Os passos agora são controlados pelo React Navigation.
+          O código antigo de <Title>, <StepName>, <Button> e etc. foi removido. */}
+    </View>
   );
 };
 
+export default SignUpScreen;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  input: { marginBottom: 16 },
-  button: { marginVertical: 8 },
-  title: { textAlign: 'center', marginBottom: 24 },
-  error: { color: 'red', textAlign: 'center', marginBottom: 12 },
-  radioContainer: {
-    marginVertical: 12,
+  container: {
+    flex: 1,
+    // Mantendo o background original para consistência visual
+    backgroundColor: "#F6EEFD",
+    justifyContent: "center",
+    alignItems: "center",
   },
+  infoText: {
+    fontSize: 16,
+    color: "#6A0DAD",
+  },
+  // O restante dos styles (stepTitle, stepContainer, footer) foi removido
+  // pois não são mais usados neste componente.
 });

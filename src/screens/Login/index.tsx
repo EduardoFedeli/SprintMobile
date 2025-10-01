@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react';
-import { StyleSheet, Alert, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
-import { AuthContext } from '../../contexts/AuthContext';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { StyleSheet, Alert, KeyboardAvoidingView, Platform, Image, View } from 'react-native';
+import { TextInput, Button, Title, Text } from 'react-native-paper';
+import { useAuth } from '../../contexts/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient'; // Certifique-se de que 'expo-linear-gradient' está instalado
 
 export const LoginScreen = ({ navigation }: any) => {
-  const { signIn } = useContext(AuthContext);
+  const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +18,10 @@ export const LoginScreen = ({ navigation }: any) => {
 
     const success = await signIn(email, password);
     if (!success) {
+      setError('Email ou senha inválidos. Tente novamente.');
       Alert.alert('Erro', 'Conta não encontrada. Crie sua conta para continuar.');
+    } else {
+      setError(''); // Limpa o erro em caso de sucesso
     }
   };
 
@@ -28,58 +31,67 @@ export const LoginScreen = ({ navigation }: any) => {
       style={{ flex: 1 }}
     >
       <LinearGradient
-        colors={['#F6EEFD', '#E4C9F9', '#CE95F3', '#BB59EC', '#952FC1', '#641D83', '#370C4A']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        // Gradiente usando #F6EEFD (claro) e #641D83 (escuro)
+        colors={['#F6EEFD', '#641D83']} 
+        start={{ x: 0, y: 0.2 }} // Inicia o degradê um pouco abaixo
+        end={{ x: 0.8, y: 0.9 }} 
         style={styles.container}
       >
         <Image
+          // Ajuste o logo para ser visível no degradê. Se ele for colorido,
+          // considere uma versão branca se a cor de fundo for escura no topo.
           source={require('../../../assets/images/logo.png')}
           style={styles.logo}
         />
+        <Title style={styles.title}>Acesse sua conta</Title>
+        
+        <View style={styles.formContainer}>
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              style={styles.input}
+              mode="outlined"
+              // Usando as cores da paleta para foco
+              activeOutlineColor="#952FC1"
+              theme={{ colors: { background: '#fff' } }}
+            />
 
-        <Text style={styles.slogan}>Aqui o seu dinheiro é inteligente</Text>
+            <TextInput
+              label="Senha"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+              mode="outlined"
+              activeOutlineColor="#952FC1"
+              theme={{ colors: { background: '#fff' } }}
+            />
 
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-          mode="outlined"
-          theme={{ colors: { primary: '#952FC1', text: '#370C4A', placeholder: '#641D83' } }}
-        />
+            {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        <TextInput
-          label="Senha"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          style={styles.input}
-          mode="outlined"
-          theme={{ colors: { primary: '#952FC1', text: '#370C4A', placeholder: '#641D83' } }}
-        />
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              style={styles.button}
+              buttonColor="#952FC1" // Cor primária da sua paleta
+              labelStyle={styles.buttonLabel}
+            >
+              ENTRAR
+            </Button>
 
-        {!!error && <Text style={styles.error}>{error}</Text>}
+            <Button
+              onPress={() => navigation.navigate('SignUp')}
+              textColor="#F6EEFD" // Cor clara sobre o fundo degradê
+              style={styles.secondaryButton}
+              labelStyle={styles.secondaryButtonLabel}
+            >
+              Primeiro acesso? Crie sua Conta
+            </Button>
+        </View>
 
-        <Button
-          mode="contained"
-          onPress={handleLogin}
-          style={styles.button}
-          buttonColor="#952FC1"
-          textColor="#F6EEFD"
-        >
-          Entrar
-        </Button>
-
-        <Button
-          onPress={() => navigation.navigate('SignUp')}
-          textColor="#F6EEFD"
-          style={styles.secondaryButton}
-        >
-          Criar Conta
-        </Button>
       </LinearGradient>
     </KeyboardAvoidingView>
   );
@@ -92,40 +104,57 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    width: 160,
-    height: 60,
+    width: 180,
+    height: 70,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+    // Se o seu logo for escuro, esta cor de fundo o destaca contra o degradê
+    // Opcional: backgroundColor: '#fff', borderRadius: 10 
   },
-  slogan: {
-    fontSize: 20,
-    fontStyle: 'italic',
-    color: '#F6EEFD',
+  formContainer: {
+    padding: 25,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Fundo translúcido para destacar o formulário
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#fff', 
     textAlign: 'center',
-    marginBottom: 25,
+    marginBottom: 30,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)', // Sombra para legibilidade
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   input: {
     marginBottom: 15,
-    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    // Garante que o texto dentro do input seja escuro e legível
+    color: '#370C4A', 
   },
   button: {
-    marginBottom: 10,
-    borderRadius: 8,
+    marginTop: 20,
+    borderRadius: 10,
+    paddingVertical: 5,
+  },
+  buttonLabel: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#fff'
   },
   secondaryButton: {
-    marginTop: 5,
+    marginTop: 15,
   },
-  error: {
-    color: '#FFD700',
+  secondaryButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  errorText: {
+    color: '#FFE082', // Amarelo claro da paleta para alertas
     marginBottom: 10,
     textAlign: 'center',
+    fontWeight: '600',
   },
 });

@@ -1,101 +1,87 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useState, useContext, ReactNode } from "react";
 
-type User = {
+export type Profile = Record<string, string>;
+
+export type User = {
   name: string;
   email: string;
-  riskProfile: 'conservador' | 'moderado' | 'agressivo';
+  password: string;
+  profile?: Profile;
 };
 
-type AuthContextType = {
+export type AuthContextType = {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
-  signOut: () => void;
-  signUp: (name: string, email: string, password: string, riskProfile: User['riskProfile']) => Promise<boolean>;
+  signUp: (name: string, email: string, password: string) => Promise<boolean>;
+  updateProfile: (profile: Profile) => void;
+  logout: () => void;
 };
 
-export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-type StoredUser = User & { password: string };
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const USERS_KEY = '@MyApp:users';
-  const CURRENT_USER_KEY = '@MyApp:user';
+  // Usuários registrados (simulação local; troque por API/DB se necessário)
+  const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const savedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
-        if (savedUser) setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Erro ao carregar usuário:', error);
-      }
-      setLoading(false);
-    };
-    loadUser();
-  }, []);
+  const signUp = async (name: string, email: string, password: string) => {
+    // retorna false se email já cadastrado
+    const exists = registeredUsers.some((u) => u.email === email);
+    if (exists) return false;
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const storedUsersJson = await AsyncStorage.getItem(USERS_KEY);
-      const storedUsers: StoredUser[] = storedUsersJson ? JSON.parse(storedUsersJson) : [];
+    const newUser: User = { name, email, password, profile: {} };
+    setRegisteredUsers((prev) => [...prev, newUser]);
+    setUser(newUser);
+    return true;
+  };
 
-      const foundUser = storedUsers.find(u => u.email === email && u.password === password);
-      if (foundUser) {
-        const { password: _, ...userWithoutPassword } = foundUser;
-        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-        setUser(userWithoutPassword);
-        return true;
-      }
-    } catch (error) {
-      console.error('Erro no login:', error);
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    const found = registeredUsers.find(
+      (u) => u.email === email && u.password === password
+    );
+    // simula um pequeno delay (opcional)
+    // await new Promise((r) => setTimeout(r, 300));
+    setLoading(false);
+
+    if (found) {
+      setUser(found);
+      return true;
     }
     return false;
   };
 
-  const signOut = async () => {
-    try {
-      await AsyncStorage.removeItem(CURRENT_USER_KEY);
-      setUser(null);
-    } catch (error) {
-      console.error('Erro ao sair:', error);
-    }
+  const updateProfile = (profile: Profile) => {
+    if (!user) return;
+    const updated: User = { ...user, profile };
+    setUser(updated);
+    setRegisteredUsers((prev) =>
+      prev.map((u) => (u.email === user.email ? updated : u))
+    );
   };
 
-  const signUp = async (
-    name: string,
-    email: string,
-    password: string,
-    riskProfile: User['riskProfile']
-  ): Promise<boolean> => {
-    try {
-      const storedUsersJson = await AsyncStorage.getItem(USERS_KEY);
-      const storedUsers: StoredUser[] = storedUsersJson ? JSON.parse(storedUsersJson) : [];
-
-      const alreadyExists = storedUsers.some(u => u.email === email);
-      if (alreadyExists) return false;
-
-      const newUser: StoredUser = { name, email, password, riskProfile };
-      const updatedUsers = [...storedUsers, newUser];
-
-      await AsyncStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
-      const { password: _, ...userWithoutPassword } = newUser;
-      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-      setUser(userWithoutPassword);
-      return true;
-    } catch (error) {
-      console.error('Erro no cadastro:', error);
-      return false;
-    }
+  const logout = () => {
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, signUp }}>
+    <AuthContext.Provider
+      value={{ user, loading, signIn, signUp, updateProfile, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Hook utilitário — use isso em telas para evitar problemas de tipagem
+export const useAuth = (): AuthContextType => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+  }
+  return ctx;
 };
