@@ -39,6 +39,7 @@ export default function HomeScreen() {
           <Text style={styles.profile}>
             Perfil: {user.profile?.riskProfile || 'Não definido'}
           </Text>
+          <Text>Saldo: R$ {user?.balance.toFixed(2)}</Text>
         </View>
         <TouchableOpacity onPress={handleLogout}>
           <Text style={styles.logout}>Sair</Text>
